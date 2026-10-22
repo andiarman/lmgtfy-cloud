@@ -34,6 +34,4 @@ The local preview server stores generated short links in memory. They stop worki
 
 ## Deployment
 
-The GitHub Actions workflow deploys the static files in `public/` to [GitHub Pages](https://andiarman.github.io/lmgtfy-cloud/) whenever changes are pushed to `main`.
-
-GitHub Pages serves the static site but does not run the Cloudflare Pages Functions in `functions/`. As a result, persistent short-link creation is unavailable on GitHub Pages and the site uses its long-link fallback. To enable short links, deploy on Cloudflare Pages and bind a KV namespace named `LINKS`, as configured in `wrangler.jsonc`.
+The GitHub Actions workflow deploys the static files in `public/` to [GitHub Pages](https://andiarman.github.io/lmgtfy-cloud/) whenever changes are pushed to `main`. The hosted site creates shareable long links. The local preview server can also create short links, which are stored in memory and last only until the server stops.

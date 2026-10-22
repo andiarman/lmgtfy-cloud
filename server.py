@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Server lokal untuk preview lmgtfy-cloud — meniru Cloudflare Pages Functions:
+Server lokal untuk preview lmgtfy-cloud:
   - static file dari ./public
   - POST /api/shorten  -> kode 5 karakter (KV in-memory)
   - GET  /<code>       -> inject window.__SHORT__ ke file template yang sesuai
@@ -83,7 +83,7 @@ class Handler(BaseHTTPRequestHandler):
         if target.is_dir():
             target = target / "index.html"
         if not target.is_file():
-            # URL bersih (Cloudflare Pages menyajikan /t/force -> t/force.html)
+            # Also support clean template URLs such as /t/force.
             alt = Path(str(target) + ".html")
             if alt.is_file():
                 target = alt

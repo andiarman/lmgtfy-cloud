@@ -19,7 +19,7 @@
   var S = window.__SHORT__ || {};
 
   // Untuk link panjang ?q= (tanpa injeksi), tebak template dari path.
-  // Bisa berupa /t/force.html atau /t/force (Cloudflare memangkas .html via 308).
+  // Support both /t/force.html and clean template URLs such as /t/force.
   var tplFromPath = 'google';
   var leaf = location.pathname.split('/').pop().replace(/\.html$/, '');
   if (leaf === 'captcha') tplFromPath = 'captcha';

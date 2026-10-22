@@ -1,13 +1,39 @@
 # Lmgtfy Cloud
 
-Let Me Google That For You with Google-style animations and prank templates.
+Lmgtfy Cloud is a playful “Let Me Google That For You” website. Create a shareable link that demonstrates how to search for a question, with an animated Google-style experience and optional prank templates.
 
-## GitHub Pages
+<p align="center">
+  <a href="https://andiarman.github.io/lmgtfy-cloud/"><strong>Visit the Lmgtfy Cloud website</strong></a>
+</p>
 
-The static site is deployed from `public/` by the GitHub Actions workflow. Long links work on GitHub Pages, including the CAPTCHA, receipt, and speedrun templates.
+## Features
 
-GitHub Pages does not run the Cloudflare Pages Functions in `functions/`, so creating persistent short links through `/api/shorten` is unavailable there. The homepage falls back to a shareable long link. To enable short links, deploy this project to Cloudflare Pages and bind a KV namespace named `LINKS` as configured in `wrangler.jsonc`.
+- Animated, interactive search demonstration.
+- Multiple templates: Google-style animation, CAPTCHA challenge, payment receipt, and typing speedrun.
+- Choose a destination: Google Search, Google AI Mode, YouTube, or Pinterest.
+- Shareable links with a long-link fallback.
+- Responsive pages and assets served as a static site on GitHub Pages.
 
-## Local preview
+## Run locally
 
-Run `python server.py` and open `http://localhost:8083/`. The preview server stores short links in memory; links disappear when the server stops.
+You need Python 3; no additional packages are required.
+
+1. Open a terminal in the project directory.
+2. Start the local preview server:
+
+   ```bash
+   python server.py
+   ```
+
+   On some systems, use `python3 server.py` instead.
+
+3. Open [http://localhost:8083/](http://localhost:8083/) in your browser.
+4. Stop the server with `Ctrl+C` when you are done.
+
+The local preview server stores generated short links in memory. They stop working when the server is stopped.
+
+## Deployment
+
+The GitHub Actions workflow deploys the static files in `public/` to [GitHub Pages](https://andiarman.github.io/lmgtfy-cloud/) whenever changes are pushed to `main`.
+
+GitHub Pages serves the static site but does not run the Cloudflare Pages Functions in `functions/`. As a result, persistent short-link creation is unavailable on GitHub Pages and the site uses its long-link fallback. To enable short links, deploy on Cloudflare Pages and bind a KV namespace named `LINKS`, as configured in `wrangler.jsonc`.

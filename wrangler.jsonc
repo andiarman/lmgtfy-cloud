@@ -1,0 +1,11 @@
+{
+  "name": "andiarman",
+  "compatibility_date": "2026-10-21",
+  "pages_build_output_dir": "./public",
+  "kv_namespaces": [
+    {
+      "binding": "LINKS",
+      "id": "9d5742b99a0d470ebe8e0a5ec7997966"
+    }
+  ]
+}

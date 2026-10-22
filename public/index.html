@@ -1,0 +1,681 @@
+﻿<!DOCTYPE html>
+<html lang="id" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Let Me Google That For You - Buat orang malas yang selalu nanya tanpa googling sendiri">
+    <meta name="theme-color" content="#ffffff">
+    <title>Google</title>
+    <link rel="icon" href="assets/favicon.ico" sizes="any">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gb: #1a73e8; --gbh: #1765cc; --gbf: #8ab4f8;
+            --gg: #5f6368; --ggl: #80868b; --gg-bg: #f8f9fa;
+            --gborder: #dfe1e5; --gtext: #202124;
+            --gwhite: #ffffff; --gshadow: rgba(60,64,67,0.08);
+            --gred: #ea4335; --ggreen: #34a853; --gyellow: #fbbc05;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --gb: #8ab4f8; --gbh: #aecbfa; --gbf: #1a73e8;
+                --gg: #9aa0a6; --ggl: #9aa0a6; --gg-bg: #202124;
+                --gborder: #3c4043; --gtext: #e8eaed; --gwhite: #1f1f1f;
+            }
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Roboto',arial,sans-serif; font-size:14px; color:var(--gtext); background:var(--gwhite); min-height:100vh; display:flex; flex-direction:column; overflow-x:hidden; }
+        #homeMode { flex:1; display:flex; flex-direction:column; min-height:100vh; }
+
+        /* NAV */
+        .top-nav { display:flex; justify-content:space-between; align-items:center; padding:0 16px; height:48px; }
+        .nav-link { display:flex; align-items:center; padding:8px; border-radius:50%; color:var(--gg); text-decoration:none; }
+        .nav-link:hover { background:var(--gg-bg); }
+        .nav-link svg { width:24px; height:24px; fill:currentColor; opacity:0.55; }
+        .sign-in-btn { display:inline-flex; align-items:center; padding:9px 23px; font-size:14px; font-weight:500; font-family:'Google Sans','Roboto',sans-serif; color:var(--gwhite); background:var(--gb); border:none; border-radius:4px; text-decoration:none; cursor:pointer; }
+
+        /* MAIN */
+        .main-content { flex:1; display:flex; flex-direction:column; align-items:center; padding:0 16px; }
+        .logo-container { display:flex; align-items:center; gap:12px; margin-top:100px; margin-bottom:8px; }
+        .title-text { font-family:'Google Sans','Roboto',sans-serif; font-size:28px; font-weight:400; color:var(--gtext); }
+        .google-logo { width:120px; height:40px; }
+        .tagline { font-size:14px; color:var(--gg); margin-bottom:24px; }
+
+        .search-container { width:100%; max-width:584px; margin-bottom:16px; }
+        .search-box-wrapper { display:flex; align-items:center; background:var(--gwhite); border:1px solid var(--gborder); border-radius:24px; box-shadow:0 1px 6px var(--gshadow); transition:box-shadow 0.2s; }
+        .search-box-wrapper:hover { box-shadow:0 1px 6px rgba(60,64,67,0.16); }
+        .search-box-wrapper:focus-within { box-shadow:0 1px 6px rgba(60,64,67,0.16), 0 0 0 1px var(--gb); border-color:var(--gb); }
+        .search-icon-wrapper { display:flex; align-items:center; justify-content:center; width:44px; color:var(--ggl); }
+        .search-icon-wrapper svg { width:20px; height:20px; }
+        .search-input { flex:1; height:44px; padding:0 12px; font-size:16px; color:var(--gtext); background:transparent; border:none; outline:none; }
+        .search-input::placeholder { color:var(--ggl); }
+        .search-actions { display:flex; padding-right:8px; gap:4px; }
+        .action-btn { display:flex; align-items:center; justify-content:center; width:40px; height:40px; border:none; border-radius:50%; background:transparent; color:var(--gg); cursor:pointer; }
+        .action-btn:hover { background:var(--gg-bg); }
+        .action-btn svg { width:24px; height:24px; }
+        .mic-btn { color:var(--gb); }
+
+        .search-buttons { display:flex; justify-content:center; gap:12px; margin-top:18px; }
+        .search-btn { padding:10px 16px; font-size:14px; color:var(--gg); background:var(--gg-bg); border:1px solid transparent; border-radius:4px; cursor:pointer; font-family:'Roboto',sans-serif; }
+        .search-btn:hover { color:var(--gtext); border-color:#d0d5da; box-shadow:0 1px 1px var(--gshadow); }
+
+        /* SHAREABLE LINK OUTPUT */
+        .output-section { width:100%; max-width:584px; margin-top:24px; display:none; }
+        .output-section.active { display:block; }
+        .output-box { background:var(--gg-bg); border:1px solid var(--gborder); border-radius:8px; padding:16px; }
+        .output-label { font-size:13px; font-weight:500; color:var(--gg); margin-bottom:8px; }
+        .output-url { width:100%; min-height:60px; padding:10px; font-size:13px; font-family:monospace; color:var(--gtext); background:var(--gwhite); border:1px solid var(--gborder); border-radius:6px; resize:vertical; }
+        .output-buttons { display:flex; gap:8px; margin-top:10px; }
+        .output-btn { padding:8px 20px; font-size:13px; font-weight:500; font-family:'Google Sans','Roboto',sans-serif; border:none; border-radius:4px; cursor:pointer; }
+        .btn-copy { color:var(--gwhite); background:var(--gb); }
+        .btn-copy:hover { background:var(--gbh); }
+        .btn-preview { color:var(--gb); background:transparent; border:1px solid var(--gb); }
+        .btn-preview:hover { background:rgba(26,115,232,0.08); }
+
+        .tips { margin-top:16px; font-size:13px; color:var(--gg); text-align:center; min-height:20px; }
+        .tips.error { color:var(--gred); }
+        .tips.success { color:var(--ggreen); }
+
+        /* TEMPLATE PRANK PICKER */
+        .tpl-section { width:100%; max-width:660px; margin-top:30px; text-align:center; }
+        .tpl-label { font-size:13px; color:var(--gg); margin-bottom:13px; font-family:'Google Sans','Roboto',sans-serif; }
+        .tpl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:9px; }
+        .tpl-card {
+            display:flex; flex-direction:column; align-items:center; gap:6px;
+            padding:13px 8px 11px; font-size:12.3px; font-weight:500; line-height:1.3;
+            font-family:'Google Sans','Roboto',sans-serif; color:var(--gg);
+            background:var(--gg-bg); border:1px solid var(--gborder); border-radius:13px;
+            cursor:pointer; transition:all .18s; user-select:none;
+        }
+        .tpl-card .emoji { font-size:23px; line-height:1; }
+        .tpl-card:hover { background:var(--gwhite); border-color:#c6c9cd; box-shadow:0 1px 3px var(--gshadow); transform:translateY(-1px); }
+        .tpl-card.active { color:var(--gb); background:rgba(26,115,232,.10); border-color:var(--gb); box-shadow:0 0 0 1px var(--gb); }
+        .tpl-hint { font-size:11.8px; color:#9aa0a6; margin-top:10px; line-height:1.5; min-height:16px; }
+
+        /* DESTINATION PLATFORM PICKER */
+        .dest-section { width:100%; max-width:640px; margin-top:28px; text-align:center; }
+        .dest-label { font-size:13px; color:var(--gg); margin-bottom:12px; font-family:'Google Sans','Roboto',sans-serif; }
+        .dest-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+        .dest-chip { display:inline-flex; align-items:center; gap:8px; padding:9px 16px; font-size:13px; font-weight:500; font-family:'Google Sans','Roboto',sans-serif; color:var(--gg); background:var(--gg-bg); border:1px solid var(--gborder); border-radius:20px; cursor:pointer; transition:all 0.18s; user-select:none; }
+        .dest-chip:hover { background:var(--gwhite); border-color:#c6c9cd; box-shadow:0 1px 3px var(--gshadow); }
+        .dest-chip.active { color:var(--gb); background:rgba(26,115,232,0.10); border-color:var(--gb); box-shadow:0 0 0 1px var(--gb); }
+        .dest-chip .dot { width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; }
+        .dest-chip .lbl { white-space:nowrap; }
+        .dest-hint { margin-top:12px; font-size:12px; color:var(--ggl); }
+
+        .footer { border-top:1px solid var(--gborder); background:var(--gg-bg); padding:15px 16px; text-align:center; font-size:13px; color:var(--gg); }
+        .footer a { color:var(--gg); }
+
+        /* ===== ANIMATION OVERLAY — FULL SCREEN DARK GOOGLE ===== */
+        .anim-overlay { position:fixed; inset:0; background:#202124; z-index:99999; display:none; flex-direction:column; opacity:0; transition:opacity 0.4s; overflow:hidden; }
+        .anim-overlay.active { display:flex; }
+        .anim-overlay.visible { opacity:1; }
+
+        /* Top nav (dark) */
+        .anim-topnav { display:flex; justify-content:flex-end; align-items:center; gap:20px; padding:14px 24px; }
+        .anim-topnav a { color:#e8eaed; text-decoration:none; font-size:14px; font-family:'Roboto',sans-serif; }
+        .anim-topnav .apps-grid { width:24px; height:24px; display:grid; grid-template-columns:repeat(3,1fr); gap:3px; }
+        .anim-topnav .apps-grid span { width:5px; height:5px; background:#e8eaed; border-radius:50%; }
+        .anim-topnav .avatar { width:32px; height:32px; border-radius:50%; background:#8ab4f8; display:flex; align-items:center; justify-content:center; color:#202124; font-weight:500; font-size:15px; }
+
+        /* Main dark page */
+        .anim-page { flex:1; display:flex; flex-direction:column; align-items:center; padding-top:8vh; position:relative; }
+        .anim-logo { height:120px; margin-bottom:40px; filter:brightness(0) invert(1); user-select:none; }
+        .anim-searchbox { display:flex; align-items:center; width:min(690px,90vw); height:56px; background:#303134; border:1px solid #5f6368; border-radius:28px; padding:0 20px; transition:border-color 0.3s, box-shadow 0.3s; }
+        .anim-searchbox.focused { border-color:#8ab4f8; box-shadow:0 0 0 1px #8ab4f8; }
+        .anim-searchbox .search-ic { width:22px; height:22px; color:#9aa0a6; margin-right:14px; flex-shrink:0; }
+        .anim-searchtext { flex:0 1 auto; min-width:0; color:#e8eaed; font-size:20px; font-family:'Roboto',sans-serif; line-height:56px; white-space:nowrap; overflow:hidden; }
+        .anim-caret { display:inline-block; width:2px; height:24px; background:#8ab4f8; vertical-align:middle; animation:blinkCur 0.8s step-end infinite; }
+        @keyframes blinkCur { 0%,100%{opacity:1} 50%{opacity:0} }
+        .anim-searchbox .plus-ic, .anim-searchbox .ai-mode { flex-shrink:0; }
+        .anim-searchbox .plus-ic { width:24px; height:24px; color:#e8eaed; margin-right:16px; }
+        .ai-mode { display:flex; align-items:center; gap:6px; background:#3c4043; color:#e8eaed; border-radius:20px; padding:8px 14px; font-size:14px; font-family:'Roboto',sans-serif; white-space:nowrap; margin-left:auto; }
+        .ai-mode svg { width:16px; height:16px; }
+
+        /* Buttons */
+        .anim-btns { display:flex; gap:12px; margin-top:32px; }
+        .anim-btn { padding:12px 20px; font-size:14px; color:#e8eaed; background:#303134; border:1px solid transparent; border-radius:6px; font-family:'Roboto',sans-serif; transition:all 0.25s; }
+        .anim-btn.hl { border-color:#8ab4f8; box-shadow:0 0 0 2px rgba(138,180,248,0.4); background:#3c4043; transform:scale(1.04); }
+
+        /* Footer offered-in */
+        .anim-offered { margin-top:auto; margin-bottom:60px; color:#e8eaed; font-size:14px; font-family:'Roboto',sans-serif; }
+        .anim-offered a { color:#8ab4f8; text-decoration:none; }
+
+        /* Fake top nav links (left) hidden on small */
+        .anim-urlbar { position:absolute; top:0; left:0; right:0; }
+
+        /* Custom cursor */
+        .custom-cursor { position:fixed; width:28px; height:28px; pointer-events:none; z-index:100001; opacity:0; transition:left 0.9s cubic-bezier(0.25,0.46,0.45,0.94), top 0.9s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.3s; }
+        .custom-cursor.visible { opacity:1; }
+        .custom-cursor svg { width:100%; height:100%; filter:drop-shadow(2px 3px 4px rgba(0,0,0,0.5)); }
+        .custom-cursor.clicking svg { transform:scale(0.8); }
+
+        /* Tap indicator */
+        .tap-indicator { position:fixed; width:56px; height:56px; border-radius:50%; background:rgba(138,180,248,0.3); border:3px solid #8ab4f8; pointer-events:none; z-index:100000; opacity:0; transform:scale(0); }
+        .tap-indicator.tap { animation:tapAnim 0.5s ease-out forwards; }
+        @keyframes tapAnim { 0%{transform:scale(0);opacity:1} 60%{transform:scale(1);opacity:1} 100%{transform:scale(1.7);opacity:0} }
+
+        /* Message toast — flows in layout, right under buttons */
+        .anim-msg { margin-top:26px; background:#3c4043; color:#e8eaed; border:1px solid #5f6368; padding:12px 24px; border-radius:24px; font-size:16px; font-family:'Google Sans','Roboto',sans-serif; max-width:min(600px,88vw); text-align:center; opacity:0; transform:translateY(8px); transition:opacity 0.35s, transform 0.35s; z-index:150; pointer-events:none; box-shadow:0 6px 20px rgba(0,0,0,0.4); font-weight:500; line-height:1.5; }
+        .anim-msg.visible { opacity:1; transform:translateY(0); }
+        .anim-msg .emoji { margin-right:6px; }
+
+        /* ===== MOBILE KEYBOARD ===== */
+        .mobile-keyboard { position:fixed; bottom:0; left:0; right:0; background:linear-gradient(180deg,#c8cdd5 0%,#b0b7c2 100%); padding:6px 3px 18px; transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.2,0.8,0.2,1); z-index:10000; border-top:1px solid #9aa0ab; }
+        .mobile-keyboard.visible { transform:translateY(0); }
+        .kb-row { display:flex; justify-content:center; gap:3px; margin-bottom:5px; }
+        .kb-key { background:white; border-radius:5px; padding:9px 0; min-width:28px; text-align:center; font-size:16px; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1a1a1a; box-shadow:0 1px 2px #a0a6b0; transition:all 0.08s; user-select:none; }
+        .kb-key.active { background:var(--gb); color:white; transform:translateY(1px); box-shadow:none; }
+        .kb-key.wide { min-width:70px; } .kb-key.space { min-width:180px; } .kb-key.special { background:#a8b0bc; font-size:13px; }
+
+        /* RESPONSIVE */
+        @media(max-width:600px) {
+            .top-nav{height:44px;} .sign-in-btn{padding:8px 16px;font-size:13px;}
+            .logo-container{margin-top:56px;flex-direction:column;gap:4px;} .title-text{font-size:22px;} .google-logo{width:100px;height:34px;}
+            .search-box-wrapper{border-radius:16px;} .search-input{height:40px;}
+            .action-btn{width:36px;height:36px;} .action-btn svg{width:20px;height:20px;}
+            .search-btn{padding:10px 14px;font-size:13px;}
+            .anim-card{padding:16px;} .anim-header h2{font-size:18px;}
+        }
+        @media(prefers-reduced-motion:reduce){ *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;} }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HOME MODE (input question) ===== -->
+    <div id="homeMode">
+        <header class="top-nav">
+            <a href="#" class="nav-link" aria-label="Google apps">
+                <svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8zm0 2v8h16V10H4zm6 0h4v4h-4V10zm-6 0h4v4H4v-4zm0 6h4v4H4v-4zm6 0h4v4h-4v-4zm6-6h4v4h-4v-4zm0 6h4v4h-4v-4z"/></svg>
+            </a>
+            <a href="#" class="sign-in-btn">Sign in</a>
+        </header>
+        <main class="main-content">
+            <div class="logo-container">
+                <span class="title-text">Mau aku bantu</span>
+                <img src="assets/googlelogo_color_272x92dp.png" alt="Google" class="google-logo" width="272" height="92">
+                <span class="title-text">Google-in?</span>
+            </div>
+            <p class="tagline">Buat orang yang males googling sendiri 🙃</p>
+
+            <div class="search-container">
+                <form class="search-box-wrapper" id="homeForm">
+                    <div class="search-icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div>
+                    <input type="text" class="search-input" id="homeInput" placeholder="Ketik pertanyaan yang mau di-Google-in..." autocomplete="off" spellcheck="false" aria-label="Search">
+                    <div class="search-actions"><button type="button" class="action-btn mic-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5.1c0 4.02 3.28 7.3 7.3 7.3s7.3-3.28 7.3-7.3c0-2.15-1.17-4.05-2.88-5.07L15.5 3.5 18.3 6.3c2.54 2.12 2.88 4.8 2.88 7.2z"/></svg></button></div>
+                </form>
+            </div>
+
+            <div class="search-buttons">
+                <button type="button" class="search-btn" id="btnGenerate">Google Search</button>
+                <button type="button" class="search-btn" id="btnLucky">I'm Feeling Lucky</button>
+            </div>
+
+            <!-- TEMPLATE PRANK PICKER -->
+            <div class="tpl-section">
+                <div class="tpl-label">🎨 Mau pakai gaya prank yang mana?</div>
+                <div class="tpl-grid" id="tplGrid">
+                    <button type="button" class="tpl-card active" data-tpl="google"><span class="emoji">🎬</span><span class="lbl">Animasi Google</span></button>
+                    <button type="button" class="tpl-card" data-tpl="captcha"><span class="emoji">🧩</span><span class="lbl">CAPTCHA</span></button>
+                    <button type="button" class="tpl-card" data-tpl="receipt"><span class="emoji">💵</span><span class="lbl">Struk Bayar</span></button>
+                    <button type="button" class="tpl-card" data-tpl="force"><span class="emoji">🏁</span><span class="lbl">Speedrun</span></button>
+                </div>
+                <div class="tpl-hint" id="tplHint">Kursor jalan ke kolom pencarian, ngetik ada typo-nya, lalu diarahkan ke platform tujuan.</div>
+            </div>
+
+            <!-- DESTINATION PLATFORM PICKER -->
+            <div class="dest-section" id="destSection">
+                <div class="dest-label">🎯 Mau diarahkan ke mana setelah animasi selesai?</div>
+                <div class="dest-grid" id="destGrid">
+                    <button type="button" class="dest-chip active" data-dest="google"><span class="dot" style="background:#4285F4">G</span><span class="lbl">Google Search</span></button>
+                    <button type="button" class="dest-chip" data-dest="aimode"><span class="dot" style="background:#9b72f2">AI</span><span class="lbl">Google AI Mode</span></button>
+                    <button type="button" class="dest-chip" data-dest="youtube"><span class="dot" style="background:#FF0000">▶</span><span class="lbl">YouTube</span></button>
+                    <button type="button" class="dest-chip" data-dest="pinterest"><span class="dot" style="background:#E60023">P</span><span class="lbl">Pinterest</span></button>
+                </div>
+                <div class="dest-hint">Animasi tetap mulai dari Google, baru di akhir diarahkan ke platform pilihanmu</div>
+            </div>
+
+            <div class="tips" id="tips">Ketik pertanyaan, lalu klik "Google Search" buat bikin linknya</div>
+
+            <!-- Shareable link output -->
+            <div class="output-section" id="outputSection">
+                <div class="output-box">
+                    <div class="output-label">📤 Link siap dibagikan — kirim ke orang malas itu!</div>
+                    <textarea class="output-url" id="urlOutput" rows="3" readonly></textarea>
+                    <div class="output-buttons">
+                        <button class="output-btn btn-copy" id="btnCopy">Salin Link</button>
+                        <button class="output-btn btn-preview" id="btnPreview">Pratinjau</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="footer">
+            Indonesia · <a href="#">Privasi</a> · <a href="#">Persyaratan</a>
+        </footer>
+    </div>
+
+    <!-- ===== ANIMATION OVERLAY (full-screen dark Google) ===== -->
+    <div class="anim-overlay" id="animOverlay">
+        <div class="anim-topnav">
+            <a href="#">Gmail</a>
+            <a href="#">Images</a>
+            <div class="apps-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="avatar">A</div>
+        </div>
+        <div class="anim-page" id="browserPage">
+            <img src="assets/googlelogo_color_272x92dp.png" alt="Google" class="anim-logo" id="animLogo">
+            <div class="anim-searchbox" id="miniSearchBox">
+                <svg class="plus-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                <span class="search-ic search-icon-inline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+                <span class="anim-searchtext" id="miniSearchText"></span><span class="anim-caret" id="miniCursor"></span>
+                <span class="ai-mode">AI Mode <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+            </div>
+            <div class="anim-btns">
+                <span class="anim-btn" id="miniBtnSearch">Google Search</span>
+                <span class="anim-btn" id="miniBtnLucky">I'm Feeling Lucky</span>
+            </div>
+            <div class="anim-msg" id="animMsg"></div>
+            <div class="anim-offered">Google offered in: <a href="#">Indonesia</a> <a href="#">Basa Bali</a></div>
+        </div>
+        <div class="custom-cursor" id="customCursor">
+            <svg viewBox="0 0 24 24" fill="#e8eaed" stroke="#202124" stroke-width="1.2"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z"/></svg>
+        </div>
+        <div class="tap-indicator" id="tapIndicator"></div>
+    </div>
+
+    <!-- Mobile keyboard -->
+    <div class="mobile-keyboard" id="mobileKeyboard">
+        <div class="kb-row"><div class="kb-key">q</div><div class="kb-key">w</div><div class="kb-key">e</div><div class="kb-key">r</div><div class="kb-key">t</div><div class="kb-key">y</div><div class="kb-key">u</div><div class="kb-key">i</div><div class="kb-key">o</div><div class="kb-key">p</div></div>
+        <div class="kb-row"><div class="kb-key">a</div><div class="kb-key">s</div><div class="kb-key">d</div><div class="kb-key">f</div><div class="kb-key">g</div><div class="kb-key">h</div><div class="kb-key">j</div><div class="kb-key">k</div><div class="kb-key">l</div></div>
+        <div class="kb-row"><div class="kb-key special wide">⇧</div><div class="kb-key">z</div><div class="kb-key">x</div><div class="kb-key">c</div><div class="kb-key">v</div><div class="kb-key">b</div><div class="kb-key">n</div><div class="kb-key">m</div><div class="kb-key special wide">⌫</div></div>
+        <div class="kb-row"><div class="kb-key special">123</div><div class="kb-key space">space</div><div class="kb-key special wide">search</div></div>
+    </div>
+
+    <script>
+    (function(){
+        'use strict';
+
+        // ===== SARKAS TAPI NGAJARIN (Indonesian) =====
+        const MSG_START = [
+            "Oke deh, aku bukain Google nya buat kamu ya~ 😌",
+            "Yaudah, sekali ini aku ajarin cara googling...",
+            "Lah, kok bisa sih masih pada nanya tapi gak pernah search sendiri...",
+            "Sabar ya, aku ketikin pertanyaan kamu di Google...",
+            "Ini lho cara googling yang bener, watch and learn! 🎓",
+            "Oke, biar kamu bisa sendiri next time ya..."
+        ];
+        const MSG_TYPING = [
+            "Tuh lihat, tinggal ketik pertanyaanmu di kolom search...",
+            "Gini lho caranya, jangan lupa dipraktekin sendiri ya...",
+            "Perhatiin baik-baik, ini pelajaran gratis nih...",
+            "Ngetiknya pelan-pelan biar kamu bisa ikutin...",
+            "Ini yang namanya 'Google', mungkin kamu belum kenal ya? 😅",
+            "Sebentar lagi kelar kok, sabar ya..."
+        ];
+        const MSG_SEARCH = [
+            "Nah, terakhir tinggal pencet tombol ini deh...",
+            "TINGGAL KLIK INI DOANG, susah amat nggak sih? 😤",
+            "Lihat, gampang banget kan? Kok gak pernah coba sendiri sih...",
+            "Tinggal satu klik lagi, kamu pasti bisa kok... katanya...",
+            "Ini tombol ajaibnya nih, pencet ya... Google Search!"
+        ];
+        const MSG_DONE = [
+            "Nah, sekarang kamu udah bisa googling sendiri ya! 🎉",
+            "Udah deh, nanti kalau ada pertanyaan lagi, GOOGLE DULU ya...",
+            "Sekarang tinggal baca hasilnya sendiri ya, jangan tanya aku lagi! 😜",
+            "Selamat! Kamu baru saja belajar cara search di Google! 🏆"
+        ];
+
+        function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+        function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+        function isMobile(){ return window.innerWidth<=600||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent); }
+
+        // Base64 encode/decode helpers
+        function b64encode(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_'); }
+        function b64decode(str){ try{ return decodeURIComponent(escape(atob(str.replace(/-/g,'+').replace(/_/g,'/')))); }catch(e){ return str; } }
+
+        // ===== DOM =====
+        const $ = id => document.getElementById(id);
+        const homeMode=$('homeMode'), homeInput=$('homeInput'), homeForm=$('homeForm');
+        const tips=$('tips'), outputSection=$('outputSection'), urlOutput=$('urlOutput');
+        const btnGenerate=$('btnGenerate'), btnLucky=$('btnLucky'), btnCopy=$('btnCopy'), btnPreview=$('btnPreview');
+        const overlay=$('animOverlay');
+        const browserPage=$('browserPage'), miniSearchBox=$('miniSearchBox'), miniSearchText=$('miniSearchText');
+        const miniCursor=$('miniCursor'), miniBtnSearch=$('miniBtnSearch');
+        const customCursor=$('customCursor'), tapIndicator=$('tapIndicator'), animMsg=$('animMsg');
+        const mobileKeyboard=$('mobileKeyboard');
+
+        let stopped=false, stepTimeouts=[], typeInterval=null;
+        let selectedDest='google';
+
+        // ===== DESTINATION PLATFORMS =====
+        const DEST_URL = {
+            google:  q=>'https://www.google.com/search?q='+encodeURIComponent(q),
+            aimode:  q=>'https://www.google.com/search?udm=50&q='+encodeURIComponent(q),
+            youtube: q=>'https://www.youtube.com/results?search_query='+encodeURIComponent(q),
+            pinterest:q=>'https://www.pinterest.com/search/pins/?q='+encodeURIComponent(q)
+        };
+        const DEST_NAME = { google:'Google Search', aimode:'Google AI Mode', youtube:'YouTube', pinterest:'Pinterest' };
+
+        function destURL(dest, q){ return (DEST_URL[dest]||DEST_URL.google)(q); }
+
+        // Chip selection
+        const destGrid=$('destGrid');
+        destGrid.addEventListener('click', e=>{
+            const chip=e.target.closest('.dest-chip');
+            if(!chip) return;
+            destGrid.querySelectorAll('.dest-chip').forEach(c=>c.classList.remove('active'));
+            chip.classList.add('active');
+            selectedDest=chip.dataset.dest;
+        });
+
+        // ===== TEMPLATE PICKER =====
+        let selectedTpl='google';
+        const TPL_NAME = { google:'Animasi Google', captcha:'CAPTCHA', receipt:'Struk', force:'Paksa Ngetik' };
+        const TPL_HINT = {
+            google:'Kursor jalan ke kolom pencarian, ngetik ada typo-nya, lalu diarahkan ke platform tujuan.',
+            captcha:'Tiruan reCAPTCHA beneran dengan gambar jalan/gedung. Verifikasi selalu gagal 3 kali.',
+            receipt:'Struk jasa pencarian Rp109.335, status BELUM LUNAS. Lunasnya pakai kupon "tolong".',
+            force:'Mode speedrun: tampilan Google, timer jalan, KPM + akurasi dihitung. Wajib ngetik sendiri.'
+        };
+        const tplGrid=$('tplGrid');
+        tplGrid.addEventListener('click', e=>{
+            const card=e.target.closest('.tpl-card');
+            if(!card) return;
+            tplGrid.querySelectorAll('.tpl-card').forEach(c=>c.classList.remove('active'));
+            card.classList.add('active');
+            selectedTpl=card.dataset.tpl;
+            $('tplHint').textContent=TPL_HINT[selectedTpl]||'';
+        });
+
+        function clearAll(){
+            stopped=true;
+            stepTimeouts.forEach(clearTimeout); stepTimeouts=[];
+            if(typeInterval) clearInterval(typeInterval);
+        }
+        function later(fn,ms){ const t=setTimeout(fn,ms); stepTimeouts.push(t); return t; }
+
+        // ===== HOME: Generate link =====
+        // Fallback lama: link panjang berbasis ?q=BASE64 (arahkan ke file template yang sesuai)
+        function buildLongLink(q){
+            const file = selectedTpl==='google' ? '' : 't/'+selectedTpl+'.html';
+            const url = new URL(file, window.location.href);
+            url.search = '?q=' + b64encode(q) + '&d=' + selectedDest;
+            return url.href;
+        }
+
+        function showResult(link, destName, isShort){
+            urlOutput.value = link;
+            outputSection.classList.add('active');
+            const tplName = TPL_NAME[selectedTpl]||'Animasi Google';
+            tips.textContent = isShort
+                ? '↓↓↓ Salin link pendek ini ('+tplName+' → tujuan: ' + destName + ') dan kirim ke orang malas itu!'
+                : '↓↓↓ Link pendek gagal dibuat, pakai link panjang ini ('+tplName+' → tujuan: ' + destName + ').';
+            tips.className = 'tips success';
+            urlOutput.focus(); urlOutput.select();
+        }
+
+        async function generateLink(){
+            const q = homeInput.value.trim();
+            if(!q){ tips.textContent='Ketik dulu pertanyaannya, jangan kosong dong!'; tips.className='tips error'; homeInput.focus(); return; }
+            const destName = DEST_NAME[selectedDest]||'Google Search';
+
+            tips.textContent='Membuat link pendek...';
+            tips.className='tips';
+
+            try{
+                const res = await fetch('/api/shorten', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ q:q, d:selectedDest, t:selectedTpl })
+                });
+                if(!res.ok) throw new Error('http '+res.status);
+                const data = await res.json();
+                if(!data.ok || !data.url) throw new Error('bad payload');
+                showResult(data.url, destName, true);
+            }catch(err){
+                // Fallback: link panjang ?q= tetap jalan 100%
+                showResult(buildLongLink(q), destName, false);
+            }
+        }
+
+        btnGenerate.addEventListener('click', generateLink);
+        homeForm.addEventListener('submit', e=>{ e.preventDefault(); generateLink(); });
+        btnLucky.addEventListener('click', ()=>{
+            const q=homeInput.value.trim();
+            if(q) window.open('https://www.google.com/search?q='+encodeURIComponent(q),'_blank');
+            else{ tips.textContent='Ketik dulu dong!'; tips.className='tips error'; }
+        });
+
+        btnCopy.addEventListener('click', ()=>{
+            urlOutput.focus(); urlOutput.select();
+            navigator.clipboard.writeText(urlOutput.value).then(()=>{
+                tips.textContent='✅ Tersalin! Sekarang kirim deh ke orangnya...';
+                tips.className='tips success';
+            }).catch(()=>{
+                document.execCommand('copy');
+                tips.textContent='✅ Tersalin! Sekarang kirim deh ke orangnya...';
+                tips.className='tips success';
+            });
+        });
+
+        btnPreview.addEventListener('click', ()=>{
+            if(urlOutput.value) window.open(urlOutput.value,'_blank');
+        });
+
+        homeInput.focus();
+
+        // ===== ANIMATION MODE =====
+        function getQueryParam(name){
+            const m = new RegExp('[?&]'+name+'=([^&]*)').exec(window.location.search);
+            return m ? b64decode(decodeURIComponent(m[1])) : null;
+        }
+        function getRawParam(name){
+            const m = new RegExp('[?&]'+name+'=([^&]*)').exec(window.location.search);
+            return m ? decodeURIComponent(m[1]) : null;
+        }
+
+        function showMsg(text){ animMsg.innerHTML='<span class="emoji">💬</span>'+text; animMsg.classList.add('visible'); }
+        function hideMsg(){ animMsg.classList.remove('visible'); }
+
+        function showMsgTimed(text, duration){
+            showMsg(text);
+            later(()=>hideMsg(), duration);
+        }
+
+        // Highlight matching keyboard key (mobile)
+        function highlightKey(char){
+            const keys = mobileKeyboard.querySelectorAll('.kb-key');
+            const c = char.toLowerCase();
+            for(let k of keys){ if(k.textContent===c){ k.classList.add('active'); setTimeout(()=>k.classList.remove('active'),100); return; } }
+        }
+
+        // ===== TYPING WITH REALISTIC TYPOS + BACKSPACE =====
+        // Pick a random position to make a typo, type wrong char, then backspace and fix
+        async function typeWithTypos(text, onChar, opts){
+            opts = opts || {};
+            const baseDelay = opts.delay || 65;
+            // Choose 1-2 typo positions (skip first 3 chars and spaces)
+            const typoPositions = [];
+            const maxTypos = text.length > 8 ? 2 : (text.length > 4 ? 1 : 0);
+            for(let t=0;t<maxTypos;t++){
+                let pos;
+                let tries=0;
+                do { pos = 3 + Math.floor(Math.random()*(text.length-3)); tries++; }
+                while((text[pos]===' ' || typoPositions.includes(pos)) && tries<20);
+                if(text[pos]!==' ') typoPositions.push(pos);
+            }
+            typoPositions.sort((a,b)=>a-b);
+
+            let typed = '';
+            for(let i=0;i<text.length;i++){
+                if(stopped) return;
+                // Typo!
+                if(typoPositions.includes(i)){
+                    // Type a wrong char (neighbor on keyboard or random letter)
+                    const wrong = wrongChar(text[i]);
+                    typed += wrong;
+                    onChar(wrong, typed, true);
+                    await sleep(baseDelay + Math.random()*40);
+                    if(stopped) return;
+                    // Pause (realize mistake)
+                    await sleep(250 + Math.random()*300);
+                    if(stopped) return;
+                    // Backspace
+                    typed = typed.slice(0,-1);
+                    onChar('\b', typed, false);
+                    await sleep(120);
+                    if(stopped) return;
+                    // Type correct char
+                    typed += text[i];
+                    onChar(text[i], typed, false);
+                    await sleep(baseDelay + Math.random()*50);
+                } else {
+                    typed += text[i];
+                    onChar(text[i], typed, false);
+                    // Random pause between chars (human-like)
+                    await sleep(baseDelay + Math.random()*45);
+                }
+            }
+        }
+
+        // Return a "wrong" character near the given one (keyboard neighbor)
+        function wrongChar(c){
+            if(c===' ') return 'e';
+            const rows = ['qwertyuiop','asdfghjkl','zxcvbnm'];
+            const lc = c.toLowerCase();
+            for(const row of rows){
+                const idx = row.indexOf(lc);
+                if(idx!==-1){
+                    const n = idx + (Math.random()<0.5?-1:1);
+                    if(n>=0 && n<row.length){
+                        const w = row[n];
+                        return c===c.toUpperCase()? w.toUpperCase() : w;
+                    }
+                }
+            }
+            return 'x';
+        }
+
+        async function playAnimation(query){
+            overlay.classList.add('active');
+            requestAnimationFrame(()=>overlay.classList.add('visible'));
+            stopped=false;
+
+            const mobile = isMobile();
+
+            if(mobile){
+                // ===== MOBILE/TABLET: keyboard animation =====
+                mobileKeyboard.classList.add('visible');
+                await sleep(700); if(stopped) return;
+
+                showMsg(rand(MSG_START));
+                await sleep(2300); if(stopped) return; hideMsg();
+
+                miniSearchBox.classList.add('focused');
+                await sleep(400); if(stopped) return;
+
+                showMsg(rand(MSG_TYPING));
+                await typeWithTypos(query, (ch, typed, isTypo)=>{
+                    if(ch==='\b'){ /* backspace visual */ }
+                    miniSearchText.textContent = typed;
+                    if(ch!=='\b') highlightKey(ch);
+                }, {delay:70});
+                if(stopped) return;
+                await sleep(800); hideMsg();
+
+                // Tap search button
+                showMsg(rand(MSG_SEARCH));
+                await sleep(1750); if(stopped) return; hideMsg();
+
+                miniBtnSearch.classList.add('hl');
+                const btnR=miniBtnSearch.getBoundingClientRect();
+                tapIndicator.style.left=(btnR.left+btnR.width/2-28)+'px';
+                tapIndicator.style.top=(btnR.top+btnR.height/2-28)+'px';
+                tapIndicator.classList.add('tap');
+
+                await sleep(500); if(stopped) return;
+                mobileKeyboard.classList.remove('visible');
+                await sleep(500); if(stopped) return;
+
+            } else {
+                // ===== DESKTOP: cursor animation =====
+                showMsg(rand(MSG_START));
+                await sleep(2300); if(stopped) return; hideMsg();
+                await sleep(400); if(stopped) return;
+
+                // Position cursor at bottom-right of viewport
+                customCursor.style.left=(window.innerWidth-60)+'px';
+                customCursor.style.top=(window.innerHeight-60)+'px';
+                customCursor.classList.add('visible');
+                await sleep(400); if(stopped) return;
+
+                // Move to search box
+                const boxR=miniSearchBox.getBoundingClientRect();
+                customCursor.style.left=(boxR.left+boxR.width*0.4)+'px';
+                customCursor.style.top=(boxR.top+boxR.height/2)+'px';
+                await sleep(1100); if(stopped) return;
+
+                // Click search box
+                customCursor.classList.add('clicking');
+                await sleep(180);
+                customCursor.classList.remove('clicking');
+                miniSearchBox.classList.add('focused');
+                await sleep(350); if(stopped) return;
+
+                // Type with typos
+                showMsg(rand(MSG_TYPING));
+                await typeWithTypos(query, (ch, typed, isTypo)=>{
+                    miniSearchText.textContent = typed;
+                }, {delay:60});
+                if(stopped) return;
+                await sleep(800); hideMsg();
+
+                // Move to Google Search button
+                const btnR=miniBtnSearch.getBoundingClientRect();
+                customCursor.style.left=(btnR.left+btnR.width/2)+'px';
+                customCursor.style.top=(btnR.top+btnR.height/2)+'px';
+                await sleep(1100); if(stopped) return;
+
+                // Highlight + message
+                miniBtnSearch.classList.add('hl');
+                showMsg(rand(MSG_SEARCH));
+                await sleep(1750); if(stopped) return;
+
+                // Click
+                customCursor.classList.add('clicking');
+                await sleep(180);
+                customCursor.classList.remove('clicking');
+                await sleep(400); if(stopped) return;
+                hideMsg();
+            }
+
+            // Done → redirect to chosen destination
+            const dest = activeDest;
+            const destName = DEST_NAME[dest] || 'Google Search';
+            showMsg('Mengarahkan ke ' + destName + '... ' + destEmoji(dest));
+            await sleep(1400); if(stopped) return;
+
+            window.location.href = destURL(dest, query);
+        }
+
+        function destEmoji(d){
+            return {google:'🔍', aimode:'✨', youtube:'▶️', pinterest:'📌'}[d] || '🔍';
+        }
+
+        // ===== INIT =====
+        // Sumber data: kode pendek (window.__SHORT__) atau link lama ?q=BASE64
+        const SHORT = window.__SHORT__;
+        const query = (SHORT && SHORT.q) ? SHORT.q : getQueryParam('q');
+        const activeDest = (SHORT && SHORT.d) ? SHORT.d : (getRawParam('d') || 'google');
+
+        if(query && String(query).trim()){
+            homeMode.style.display='none';
+            playAnimation(String(query).trim());
+        }
+
+    })();
+    </script>
+</body>
+</html>

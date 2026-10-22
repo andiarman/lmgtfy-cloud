@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Verifikasi</title>
+<link rel="icon" href="../assets/favicon.ico">
+<link rel="stylesheet" href="base.css">
+<style>
+  body { background: #202124; }
+
+  /* ===== widget "Saya bukan robot" ===== */
+  .rc-wrap { width: 100%; max-width: 340px; margin: 26px auto 0; }
+  .rc-box {
+    background: #f9f9f9; border: 1px solid #d3d3d3; border-radius: 3px;
+    box-shadow: 0 0 4px rgba(0,0,0,.28); overflow: hidden;
+    opacity: 0; transform: translateY(10px); animation: rcIn .45s .1s both;
+  }
+  @keyframes rcIn { to { opacity: 1; transform: none; } }
+  .rc-check { display: flex; align-items: center; gap: 14px; padding: 14px 15px; cursor: pointer; }
+  .rc-cbox {
+    width: 28px; height: 28px; border: 2px solid #c1c1c1; border-radius: 2px; background: #fff;
+    flex: none; display: flex; align-items: center; justify-content: center; position: relative;
+    transition: border-color .15s;
+  }
+  .rc-check:hover .rc-cbox { border-color: #a0a0a0; }
+  .rc-cbox svg { width: 20px; height: 20px; opacity: 0; transition: opacity .15s; }
+  .rc-cbox.done { border-color: #4caf50; }
+  .rc-cbox.done svg { opacity: 1; }
+  .rc-cbox.busy::after {
+    content: ''; width: 16px; height: 16px; border: 2px solid #c1c1c1; border-top-color: #4285f4;
+    border-radius: 50%; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .rc-lbl { font-family: Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #000; }
+  .rc-brand { padding: 0 15px 10px; text-align: right; }
+  .rc-brand .nm { font-family: Roboto, Arial, sans-serif; font-size: 9px; color: #9b9b9b; letter-spacing: .3px; }
+  .rc-brand .lk { font-family: Roboto, Arial, sans-serif; font-size: 9px; color: #9b9b9b; margin-top: 2px; }
+  .rc-brand svg { width: 22px; height: 22px; vertical-align: middle; margin-right: 3px; }
+
+  /* ===== challenge modal ===== */
+  .rc-mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 9999;
+    display: none; align-items: center; justify-content: center; padding: 14px;
+  }
+  .rc-mask.show { display: flex; }
+  .rc-chal {
+    width: min(396px, 100%); background: #fff; border-radius: 3px; overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,.5); font-family: Roboto, Arial, sans-serif;
+    animation: chalIn .28s both;
+  }
+  @keyframes chalIn { from { opacity: 0; transform: scale(.96) translateY(8px); } to { opacity: 1; transform: none; } }
+  .rc-top { background: #4285f4; color: #fff; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .rc-top .ttl { font-size: 14px; font-weight: 500; line-height: 1.35; }
+  .rc-top .ttl b { display: block; font-size: 17px; font-weight: 500; text-transform: capitalize; margin-top: 1px; }
+  .rc-top .x { background: none; border: none; color: #fff; font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 4px; opacity: .85; }
+  .rc-top .x:hover { opacity: 1; }
+
+  .rc-sub { padding: 11px 16px 0; font-size: 13px; color: #444; }
+
+  .rc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; margin: 11px 16px 0; }
+  .tile { position: relative; aspect-ratio: 1; overflow: hidden; cursor: pointer; background: #eee; border: none; padding: 0; }
+  .tile img { position: absolute; width: 300%; height: 300%; max-width: none; object-fit: cover;
+    left: calc(var(--c) * -100%); top: calc(var(--r) * -100%); transition: transform .12s ease-out; user-select: none; -webkit-user-drag: none; }
+  .tile::after { content: ''; position: absolute; inset: 0; border: 3px solid transparent; transition: border-color .1s; pointer-events: none; }
+  .tile.sel::after { border-color: #fff; box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); }
+  .tile.sel img { transform: scale(1.08); }
+  .tile:hover::after { border-color: rgba(255,255,255,.6); }
+  .tile.load { pointer-events: none; }
+  .tile.load .ov { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; }
+  .tile.load .ov i { display: block; background: #fff; border-radius: 50%; animation: dots .9s infinite ease-in-out; }
+  .tile.load .ov i:nth-child(1) { width: 8px; height: 8px; animation-delay: 0s; }
+  .tile.load .ov i:nth-child(2) { width: 8px; height: 8px; margin: 0 5px; animation-delay: .16s; }
+  .tile.load .ov i:nth-child(3) { width: 8px; height: 8px; animation-delay: .32s; }
+  @keyframes dots { 0%, 80%, 100% { opacity: .25; transform: scale(.75); } 40% { opacity: 1; transform: scale(1); } }
+  .tile.load::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.28); z-index: 1; }
+
+  .rc-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 14px; gap: 10px; }
+  .rc-tools { display: flex; gap: 12px; }
+  .rc-tools button { background: none; border: none; cursor: pointer; color: #777; padding: 3px; display: flex; }
+  .rc-tools button:hover { color: #4285f4; }
+  .rc-tools svg { width: 19px; height: 19px; }
+  .rc-go {
+    background: #4285f4; color: #fff; border: none; border-radius: 3px; padding: 10px 22px;
+    font-family: Roboto, Arial, sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; letter-spacing: .2px;
+  }
+  .rc-go:hover { background: #3b78e7; }
+  .rc-go:disabled { background: #c6dafc; cursor: default; }
+
+  /* ===== panel reveal ===== */
+  .vc-done { display: none; text-align: center; padding: 30px 20px 26px; }
+  .vc-done.show { display: block; animation: chalIn .3s both; }
+  .vc-done .big { font-size: 42px; }
+  .vc-done h3 { font-size: 18px; font-weight: 500; margin: 12px 0 8px; color: #f28b82; letter-spacing: .3px; }
+  .vc-done p { font-size: 14px; color: #9aa0a6; line-height: 1.65; margin: 0 auto; max-width: 310px; }
+  .vc-done p b { color: #e8eaed; background: rgba(138,180,248,.16); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  .vc-done .p-cta { margin-top: 18px; }
+
+  @media (max-width: 420px) {
+    .rc-wrap { max-width: 100%; margin-top: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="p-shell">
+  <div class="p-top">
+    <div class="p-brand"><span class="p-dot"></span> Keamanan</div>
+    <div class="p-model">v2</div>
+  </div>
+
+  <div class="rc-wrap">
+    <div class="rc-box" id="box">
+      <div class="rc-check" id="check">
+        <div class="rc-cbox" id="cbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div class="rc-lbl">Saya bukan robot</div>
+      </div>
+      <div class="rc-brand">
+        <div class="nm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2"><path d="M4.5 8a7.5 7.5 0 0112.6-3.1"/><path d="M19.5 16a7.5 7.5 0 01-12.6 3.1"/><path d="M17.5 1v4h-4"/><path d="M6.5 23v-4h4"/></svg>reCAPTCHA
+        </div>
+        <div class="lk">Privasi - Ketentuan</div>
+      </div>
+    </div>
+
+    <div class="vc-done" id="done">
+      <div class="big">🤖</div>
+      <h3>Verifikasi gagal.</h3>
+      <p id="doneMsg"></p>
+      <button class="p-cta" id="btnGo">Buka Google &amp; cari sendiri →</button>
+    </div>
+  </div>
+</div>
+
+<div class="rc-mask" id="mask">
+  <div class="rc-chal">
+    <div class="rc-top">
+      <div class="ttl">Pilih semua kotak dengan<b id="tgt">traffic light</b></div>
+      <button class="x" id="btnClose" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="rc-sub" id="sub">Klik verifikasi sekali sudah tidak ada yang tersisa</div>
+    <div class="rc-grid" id="grid"></div>
+    <div class="rc-foot">
+      <div class="rc-tools">
+        <button id="btnRefresh" aria-label="Ganti gambar" title="Ganti gambar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 11-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+        </button>
+        <button id="btnAudio" aria-label="Audio" title="Audio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/><path d="M19 5a9 9 0 010 14"/></svg>
+        </button>
+      </div>
+      <button class="rc-go" id="btnVerify" disabled>VERIFY</button>
+    </div>
+  </div>
+</div>
+
+<script src="base.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var mask = $('mask'), grid = $('grid'), tgt = $('tgt'), sub = $('sub'),
+      btnV = $('btnVerify'), cbox = $('cbox'), done = $('done'), box = $('box');
+
+  // gambar nyata hasil unduhan Wikimedia Commons (lihat /t/img/CREDITS.txt)
+  var IMG = 'img/';
+  var ROUNDS = [
+    { f: 'trafficlight.jpg', t: 'traffic light' },
+    { f: 'bicycle.jpg',      t: 'sepeda' },
+    { f: 'crosswalk.jpg',    t: 'akal sehat' }
+  ];
+  var fails = 0, round = 0, imgIdx = 0;
+
+  function buildGrid(r) {
+    var roundData = ROUNDS[r];
+    // gambar dipilih; kalau refresh, geser ke gambar berikutnya di pool
+    var pool = ['trafficlight.jpg','bicycle.jpg','crosswalk.jpg','car.jpg','bus.jpg','hydrant.jpg','bridge.jpg','store.jpg','stairs.jpg','mountain.jpg'];
+    var f = roundData.f;
+    if (r === 0) f = pool[imgIdx % pool.length];
+
+    tgt.textContent = roundData.t;
+    grid.innerHTML = '';
+    for (var row = 0; row < 3; row++) {
+      for (var col = 0; col < 3; col++) {
+        var b = document.createElement('button');
+        b.className = 'tile';
+        b.style.setProperty('--r', row);
+        b.style.setProperty('--c', col);
+        b.setAttribute('aria-label', 'Kotak ' + (row + 1) + ',' + (col + 1));
+        b.innerHTML = '<img src="' + IMG + f + '" alt="" draggable="false">' +
+                      '<span class="ov"><i></i><i></i><i></i></span>';
+        grid.appendChild(b);
+      }
+    }
+    btnV.disabled = true;
+    sub.textContent = 'Klik verifikasi sekali sudah tidak ada yang tersisa';
+  }
+
+  grid.addEventListener('click', function (e) {
+    var t = e.target.closest('.tile'); if (!t || t.classList.contains('load')) return;
+    t.classList.toggle('sel');
+    btnV.disabled = !grid.querySelector('.sel');
+  });
+
+  // buka challenge
+  $('check').addEventListener('click', function () {
+    if (done.classList.contains('show')) return;
+    cbox.classList.remove('done'); cbox.classList.add('busy');
+    setTimeout(function () {
+      cbox.classList.remove('busy');
+      buildGrid(round);
+      mask.classList.add('show');
+    }, 1000);
+  });
+
+  $('btnClose').addEventListener('click', function () {
+    mask.classList.remove('show');
+    cbox.classList.remove('busy');
+  });
+
+  $('btnRefresh').addEventListener('click', function () {
+    imgIdx++;
+    buildGrid(round);
+    sub.textContent = 'Gambar baru. Pilih lagi.';
+  });
+
+  $('btnAudio').addEventListener('click', function () {
+    showToast('<b>Tidak ada suara.</b><br><span class="muted">Karena yang disuruh dengar memang tidak ada.</span>', { icon: '🔇' });
+  });
+
+  // verify -> selalu gagal (jadi robot)
+  btnV.addEventListener('click', function () {
+    var sel = grid.querySelectorAll('.sel');
+    if (!sel.length) return;
+    Array.prototype.forEach.call(grid.children, function (t) { t.classList.add('load'); });
+    btnV.disabled = true;
+    sub.textContent = 'Memverifikasi…';
+    setTimeout(function () {
+      fails++;
+      if (fails >= 3) { mask.classList.remove('show'); reveal(); return; }
+      // reCAPTCHA selalu minta ulang
+      round++;
+      if (round >= ROUNDS.length) round = ROUNDS.length - 1;
+      buildGrid(round);
+      sub.textContent = 'Harap coba lagi. Kotak yang dipilih belum tepat.';
+      showToast('<b>Verifikasi gagal.</b><br><span class="muted">Coba lagi dengan gambar berikutnya.</span>', { icon: '🔁' });
+    }, 1400);
+  });
+
+  function reveal() {
+    cbox.classList.remove('done', 'busy');
+    box.style.display = 'none';
+    $('doneMsg').innerHTML = 'Kotak <b>' + escapeHtml(PRANK.query) +
+      '</b> sudah dicari di semua gambar. Tidak ada satupun yang cocok, ' +
+      'karena memang belum pernah ada isinya.<br><br>' +
+      'Isinya baru muncul kalau kamu buka Google dan ngetik sendiri.';
+    done.classList.add('show');
+    showToast('<b>3x gagal verifikasi.</b><br><span class="muted">Akal sehat tidak terdeteksi.</span>', { icon: '🤖' });
+  }
+
+  $('btnGo').addEventListener('click', function () {
+    window.location.href = PRANK.destURL(PRANK.dest, PRANK.query);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Google</title>
+<link rel="icon" href="../assets/favicon.ico">
+<link rel="stylesheet" href="base.css">
+<style>
+  html, body { min-height: 100%; }
+  body { display: flex; flex-direction: column; background: #202124; }
+
+  /* ===== garis progres speedrun (paling atas) ===== */
+  .sr-prog { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: rgba(66,133,244,.14); z-index: 90; }
+  .sr-prog i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg,#4285f4,#8ab4f8); transition: width .1s linear; }
+
+  /* ===== HUD speedrun ===== */
+  .sr-hud {
+    position: fixed; top: 16px; left: 16px; z-index: 80; min-width: 152px;
+    background: rgba(48,49,52,.94); border: 1px solid #3c4043; border-radius: 14px;
+    padding: 10px 13px 11px; box-shadow: 0 8px 26px rgba(0,0,0,.45);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    transition: border-color .3s, box-shadow .3s;
+  }
+  .sr-hud.run { border-color: rgba(138,180,248,.55); box-shadow: 0 0 0 3px rgba(138,180,248,.14), 0 8px 26px rgba(0,0,0,.45); }
+  .sr-hud.win { border-color: rgba(129,201,149,.6); box-shadow: 0 0 0 3px rgba(129,201,149,.16), 0 8px 26px rgba(0,0,0,.45); }
+  .sr-hud .hd { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    font-size: 9.5px; letter-spacing: 2.2px; color: #9aa0a6; margin-bottom: 8px; }
+  .sr-hud .hd b { color: #8ab4f8; font-weight: 700; }
+  .sr-hud .hd .dot { width: 6px; height: 6px; border-radius: 50%; background: #5f6368; margin-right: 5px; display: inline-block; }
+  .sr-hud.run .hd .dot { background: #8ab4f8; animation: pulse 1s ease-in-out infinite; }
+  .sr-hud.win .hd .dot { background: #81c995; }
+  @keyframes pulse { 50% { opacity: .25; } }
+  .sr-hud .r { display: flex; justify-content: space-between; align-items: baseline; gap: 14px;
+    font-size: 10px; letter-spacing: 1.4px; color: #9aa0a6; }
+  .sr-hud .r + .r { margin-top: 5px; }
+  .sr-hud .r .v { font-size: 14px; color: #e8eaed; font-weight: 700; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+  .sr-hud .r.time .v { font-size: 21px; color: #8ab4f8; letter-spacing: -.5px; }
+  .sr-hud .r.acc .v { color: #81c995; }
+  .sr-hud .r.acc.warn .v { color: #f28b82; }
+  .sr-hud .r.best .v { font-size: 13px; color: #fdd663; }
+
+  /* ===== chrome Google (disalin dari mode animasi) ===== */
+  .anim-topnav { display: flex; justify-content: flex-end; align-items: center; gap: 20px; padding: 14px 24px; }
+  .anim-topnav a { color: #e8eaed; text-decoration: none; font-size: 14px; font-family: 'Roboto', sans-serif; }
+  .anim-topnav .apps-grid { width: 24px; height: 24px; display: grid; grid-template-columns: repeat(3,1fr); gap: 3px; }
+  .anim-topnav .apps-grid span { width: 5px; height: 5px; background: #e8eaed; border-radius: 50%; }
+  .anim-topnav .avatar { width: 32px; height: 32px; border-radius: 50%; background: #8ab4f8;
+    display: flex; align-items: center; justify-content: center; color: #202124; font-weight: 500; font-size: 15px; }
+
+  .anim-page { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 3vh; position: relative; }
+  .anim-logo { height: clamp(74px, 23vw, 112px); margin-bottom: 18px; filter: brightness(0) invert(1); user-select: none; }
+
+  .sr-goal { width: min(690px, 90vw); text-align: center; margin-bottom: 13px; }
+  .sr-goal .lab { display: block; font-size: 10.5px; letter-spacing: 2.4px; text-transform: uppercase; color: #9aa0a6; margin-bottom: 6px; }
+  .sr-goal .txt { font-size: clamp(15px, 3.3vw, 19px); line-height: 1.45; color: #5f6368; overflow-wrap: anywhere; }
+  .sr-goal .txt .c { color: #e8eaed; font-weight: 500; }
+
+  .anim-searchbox { display: flex; align-items: center; width: min(690px, 90vw); height: 56px;
+    background: #303134; border: 1px solid #5f6368; border-radius: 28px; padding: 0 20px;
+    transition: border-color .3s, box-shadow .3s; }
+  .anim-searchbox.focused { border-color: #8ab4f8; box-shadow: 0 0 0 1px #8ab4f8; }
+  .anim-searchbox.miss { border-color: #f28b82; box-shadow: 0 0 0 1px rgba(242,139,130,.7); }
+  .anim-searchbox .search-ic { width: 22px; height: 22px; color: #9aa0a6; margin-right: 14px; flex-shrink: 0; display: block; }
+  .sr-inp { flex: 1 1 auto; min-width: 0; background: transparent; border: none; outline: none; padding: 0;
+    color: #e8eaed; caret-color: #8ab4f8; font-family: 'Google Sans', 'Product Sans', Roboto, Arial, sans-serif;
+    font-size: 20px; line-height: 56px; height: 56px; }
+  .sr-inp::placeholder { color: #5f6368; }
+  .sr-inp::selection { background: rgba(138,180,248,.35); }
+  .anim-searchbox .plus-ic, .anim-searchbox .ai-mode { flex-shrink: 0; }
+  .anim-searchbox .plus-ic { width: 24px; height: 24px; color: #e8eaed; margin-left: 14px; }
+  .ai-mode { display: flex; align-items: center; gap: 6px; background: #3c4043; color: #e8eaed; border-radius: 20px;
+    padding: 8px 14px; font-size: 14px; font-family: 'Roboto', sans-serif; white-space: nowrap; margin-left: 14px; }
+  .ai-mode svg { width: 16px; height: 16px; }
+
+  .anim-btns { display: flex; gap: 12px; margin-top: 30px; }
+  .anim-btn { padding: 12px 20px; font-size: 14px; color: #e8eaed; background: #303134; border: 1px solid transparent;
+    border-radius: 6px; font-family: 'Roboto', sans-serif; transition: all .25s; cursor: pointer; }
+  .anim-btn.hl { border-color: #8ab4f8; box-shadow: 0 0 0 2px rgba(138,180,248,.4); background: #3c4043; transform: scale(1.04); }
+
+  .sr-hint { margin-top: 20px; min-height: 20px; font-size: 13.5px; color: #9aa0a6; font-family: 'Roboto', sans-serif; text-align: center; padding: 0 16px; }
+  .sr-hint b { color: #8ab4f8; }
+
+  .anim-offered { margin-top: auto; margin-bottom: 58px; color: #e8eaed; font-size: 14px; font-family: 'Roboto', sans-serif; }
+  .anim-offered a { color: #8ab4f8; text-decoration: none; }
+
+  /* ===== kartu hasil ===== */
+  .sr-done {
+    position: fixed; left: 50%; bottom: 16px; transform: translate(-50%, 24px);
+    width: min(540px, calc(100vw - 24px)); z-index: 95;
+    background: #303134; border: 1px solid #3c4043; border-radius: 18px; padding: 16px 18px 17px;
+    box-shadow: 0 18px 46px rgba(0,0,0,.6); opacity: 0; visibility: hidden;
+    transition: opacity .35s, transform .35s, visibility .35s;
+  }
+  .sr-done.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+  .sr-done .fin { font-size: 11px; letter-spacing: 2.4px; color: #81c995; font-weight: 700; }
+  .sr-done .row1 { display: flex; align-items: baseline; gap: 12px; margin-top: 7px; flex-wrap: wrap; }
+  .sr-done .big { font-family: ui-monospace, Consolas, monospace; font-size: clamp(30px, 8vw, 40px);
+    font-weight: 700; color: #e8eaed; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .sr-done .newrec { font-size: 12px; font-weight: 700; color: #202124; background: #fdd663; padding: 4px 9px; border-radius: 999px; }
+  .sr-done .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 13px; }
+  .sr-done .kpi { background: #202124; border: 1px solid #3c4043; border-radius: 11px; padding: 8px 6px; text-align: center; }
+  .sr-done .kpi .k { font-size: 9.5px; letter-spacing: 1.4px; color: #9aa0a6; }
+  .sr-done .kpi .v { font-size: 16px; font-weight: 700; color: #e8eaed; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .sr-done .rank { margin-top: 11px; font-size: 13.5px; color: #bdc1c6; text-align: center; }
+  .sr-done .rank b { color: #8ab4f8; font-size: 15px; }
+  .sr-done .go { width: 100%; margin-top: 13px; background: #8ab4f8; color: #202124; border: none;
+    border-radius: 999px; padding: 13px 20px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .sr-done .go:active { transform: scale(.99); }
+  .sr-done .auto { margin-top: 8px; text-align: center; font-size: 11.5px; color: #9aa0a6; }
+
+  @media (max-width: 760px) {
+    .sr-hud { top: 10px; left: 10px; min-width: 0; padding: 8px 10px 9px; border-radius: 12px; }
+    .sr-hud .r.time .v { font-size: 18px; }
+    .sr-hud .r { font-size: 9.5px; }
+    .anim-topnav { gap: 14px; padding: 10px 14px; }
+    .anim-topnav a { font-size: 13px; }
+    .anim-page { padding-top: 78px; }
+    .anim-btns { margin-top: 22px; }
+    .anim-offered { margin-bottom: 24px; }
+    .ai-mode { display: none; }
+  }
+  @media (max-height: 700px) {
+    .anim-logo { height: 66px; margin-bottom: 12px; }
+    .anim-page { padding-top: 46px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sr-prog"><i id="prog"></i></div>
+
+<div class="sr-hud" id="hud">
+  <div class="hd"><span><span class="dot"></span>SPEEDRUN</span><b id="hudState">SIAP</b></div>
+  <div class="r time"><span>WAKTU</span><span class="v" id="hudTime">00:00.000</span></div>
+  <div class="r"><span>KPM</span><span class="v" id="hudKpm">0</span></div>
+  <div class="r acc" id="rowAcc"><span>AKURASI</span><span class="v" id="hudAcc">100%</span></div>
+  <div class="r best"><span>REKOR</span><span class="v" id="hudBest">—</span></div>
+</div>
+
+<div class="anim-topnav">
+  <a href="#">Gmail</a>
+  <a href="#">Images</a>
+  <div class="apps-grid"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="avatar">A</div>
+</div>
+
+<div class="anim-page">
+  <img src="../assets/googlelogo_color_272x92dp.png" alt="Google" class="anim-logo">
+
+  <div class="sr-goal">
+    <span class="lab">Ketik persis</span>
+    <span class="txt" id="target"></span>
+  </div>
+
+  <div class="anim-searchbox" id="box">
+    <span class="search-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
+    <input class="sr-inp" id="inp" type="text" autocomplete="off" autocapitalize="off" autocorrect="off"
+           spellcheck="false" placeholder="Ketik di sini…" aria-label="Ketik pertanyaan">
+    <span class="plus-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
+    <span class="ai-mode">AI Mode <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  </div>
+
+  <div class="anim-btns">
+    <button class="anim-btn" id="btnSearch" type="button">Google Search</button>
+    <span class="anim-btn" id="btnLucky">I'm Feeling Lucky</span>
+  </div>
+
+  <div class="sr-hint" id="hint">Timer mulai begitu kamu mengetik huruf pertama.</div>
+
+  <div class="anim-offered">Google offered in: <a href="#">Indonesia</a> <a href="#">Basa Bali</a></div>
+</div>
+
+<div class="sr-done" id="done">
+  <div class="fin">✓ SELESAI</div>
+  <div class="row1">
+    <span class="big" id="finTime">00:00.000</span>
+    <span class="newrec" id="finNew" style="display:none">🏆 REKOR BARU</span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="k">KPM</div><div class="v" id="finKpm">0</div></div>
+    <div class="kpi"><div class="k">AKURASI</div><div class="v" id="finAcc">100%</div></div>
+    <div class="kpi"><div class="k">KARAKTER</div><div class="v" id="finLen">0</div></div>
+  </div>
+  <div class="rank">Peringkat: <b id="finRank">—</b></div>
+  <button class="go" id="btnGo" type="button">Buka hasil pencarian →</button>
+  <div class="auto" id="auto"></div>
+</div>
+
+<script src="base.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var target = PRANK.query;
+  var inp = $('inp'), box = $('box'), targetEl = $('target'), prog = $('prog'), hud = $('hud');
+  var hudTime = $('hudTime'), hudKpm = $('hudKpm'), hudAcc = $('hudAcc'),
+      hudBest = $('hudBest'), hudState = $('hudState'), rowAcc = $('rowAcc');
+  var hint = $('hint'), done = $('done'), btnGo = $('btnGo'), auto = $('auto'), btnSearch = $('btnSearch');
+
+  var BEST_KEY = 'lm_sr_best_' + target.length;
+  var best = 0;
+  try { best = parseFloat(localStorage.getItem(BEST_KEY) || '0') || 0; } catch (e) {}
+  hudBest.textContent = best ? fmt(best, true) : '—';
+
+  var t0 = null, raf = 0, finished = false;
+  var typed = 0, correct = 0, prevLen = 0, missed = false;
+
+  function pad(n, w) { n = String(n); while (n.length < (w || 2)) n = '0' + n; return n; }
+  function fmt(ms, short) {
+    if (ms < 0) ms = 0;
+    var totalS = Math.floor(ms / 1000), m = Math.floor(totalS / 60), s = totalS % 60;
+    var frac = Math.floor(ms % 1000);
+    if (short) return (m ? pad(m) + ':' : '') + pad(s) + '.' + pad(Math.floor(frac / 10));
+    return pad(m) + ':' + pad(s) + '.' + pad(frac, 3);
+  }
+  function rankOf(k) {
+    if (k < 90)  return 'PELATIHAN DASAR';
+    if (k < 150) return 'MASIH AMAN';
+    if (k < 220) return 'NGEBUT';
+    if (k < 320) return 'SPEEDRUNNER';
+    return 'TIDAK MANUSIAWI';
+  }
+
+  // ===== target dengan highlight progres =====
+  function renderTarget(upto) {
+    var h = '';
+    for (var i = 0; i < target.length; i++) {
+      h += i < upto ? '<span class="c">' + escapeHtml(target[i]) + '</span>' : escapeHtml(target[i]);
+    }
+    targetEl.innerHTML = h;
+  }
+  function goodPrefix(v) {
+    var n = 0;
+    while (n < v.length && n < target.length && v[n] === target[n]) n++;
+    return n;
+  }
+  renderTarget(0);
+  inp.focus();
+
+  // ===== timing =====
+  function elapsed() { return t0 ? (Date.now() - t0) : 0; }
+
+  function tick() {
+    if (!t0 || finished) return;
+    var el = elapsed();
+    hudTime.textContent = fmt(el);
+    var good = goodPrefix(inp.value);
+    hudKpm.textContent = el > 60 ? Math.round(good / (el / 60000)) : 0;
+    raf = requestAnimationFrame(tick);
+  }
+
+  function start() {
+    if (t0 || finished) return;
+    t0 = Date.now();
+    hud.classList.add('run');
+    hudState.textContent = 'JALAN';
+    hint.innerHTML = 'Timer berjalan. <b>Jangan sampai salah ketik</b> — akurasi ikut dihitung.';
+    raf = requestAnimationFrame(tick);
+  }
+
+  // ===== evaluasi tiap ketukan =====
+  function evaluate() {
+    var v = inp.value;
+    if (v.length > target.length) { v = inp.value = v.slice(0, target.length); }
+
+    if (v.length > prevLen) {
+      for (var i = prevLen; i < v.length; i++) {
+        typed++;
+        if (v[i] === target[i]) correct++;
+      }
+    }
+    prevLen = v.length;
+
+    var good = goodPrefix(v);
+    renderTarget(good);
+
+    var acc = typed ? Math.round((correct / typed) * 100) : 100;
+    hudAcc.textContent = acc + '%';
+    rowAcc.classList.toggle('warn', acc < 100);
+
+    prog.style.width = (good / target.length * 100) + '%';
+    var bad = v.length > good;
+    box.classList.toggle('miss', bad);
+    if (bad && !missed) {
+      missed = true;
+      hint.innerHTML = '<b style="color:#f28b82">Meleset.</b> Hapus yang salah dulu.';
+    } else if (!bad && missed) {
+      missed = false;
+      if (t0) hint.innerHTML = 'Timer berjalan. <b>Jangan sampai salah ketik</b> — akurasi ikut dihitung.';
+    }
+
+    if (v === target) finish(good);
+  }
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    if (!t0) t0 = Date.now();
+    cancelAnimationFrame(raf);
+
+    var el = Math.max(elapsed(), 1);
+    var kpm = Math.round(target.length / (el / 60000));
+    var acc = typed ? Math.round((correct / typed) * 100) : 100;
+
+    hudTime.textContent = fmt(el);
+    hudKpm.textContent = kpm;
+    prog.style.width = '100%';
+    hud.classList.remove('run');
+    hud.classList.add('win');
+    hudState.textContent = 'FINIS';
+
+    var isRec = false;
+    if (!best || el < best) { isRec = true; best = el; try { localStorage.setItem(BEST_KEY, String(el)); } catch (e) {} }
+    hudBest.textContent = fmt(best, true);
+
+    box.classList.remove('miss');
+    $('finTime').textContent = fmt(el);
+    $('finKpm').textContent = kpm;
+    $('finAcc').textContent = acc + '%';
+    $('finLen').textContent = target.length;
+    $('finRank').textContent = rankOf(kpm);
+    var showRec = isRec && target.length > 3;
+    $('finNew').textContent = '★ REKOR BARU';
+    $('finNew').style.display = showRec ? '' : 'none';
+
+    hint.innerHTML = 'Selesai. Kamu mengetik <b>' + target.length + '</b> karakter sendiri. ' +
+      'Google butuh 0,4 detik buat hal yang sama.';
+
+    inp.readOnly = true;
+    inp.blur();
+    btnSearch.classList.add('hl');
+    done.classList.add('show');
+    document.querySelector('.anim-offered').style.display = 'none';
+
+    var left = 5;
+    auto.textContent = 'Membuka hasil pencarian dalam ' + left + '…';
+    var iv = setInterval(function () {
+      left--;
+      if (left <= 0) { clearInterval(iv); go(); return; }
+      auto.textContent = 'Membuka hasil pencarian dalam ' + left + '…';
+    }, 1000);
+    go.countdown = iv;
+  }
+
+  function go() {
+    if (go.countdown) clearInterval(go.countdown);
+    window.location.href = PRANK.destURL(PRANK.dest, target);
+  }
+
+  inp.addEventListener('input', function () {
+    if (finished) { inp.value = target; return; }
+    if (!t0 && inp.value.length > 0) start();
+    evaluate();
+  });
+
+  inp.addEventListener('paste', function (e) {
+    e.preventDefault();
+    showToast('<b>Tempel dilarang.</b><br><span class="muted">Speedrun itu ngetik manual, bukan Ctrl+V.</span>', { icon: '🏁' });
+  });
+  inp.addEventListener('drop', function (e) { e.preventDefault(); });
+
+  inp.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); if (finished) go(); else if (inp.value !== target) evaluate(); }
+  });
+
+  inp.addEventListener('focus', function () { box.classList.add('focused'); });
+  inp.addEventListener('blur', function () { box.classList.remove('focused'); });
+  box.addEventListener('mousedown', function (e) {
+    if (e.target !== inp && !finished) { e.preventDefault(); inp.focus(); }
+  });
+
+  btnSearch.addEventListener('click', function () { if (finished) go(); });
+  $('btnLucky').addEventListener('click', function () {
+    showToast('<b>I\'m Feeling Lucky butuh kamu ngetik dulu.</b><br><span class="muted">Persis seperti aslinya.</span>', { icon: '🍀' });
+  });
+  btnGo.addEventListener('click', go);
+
+  document.addEventListener('click', function () { if (!finished) inp.focus(); });
+})();
+</script>
+</body>
+</html>

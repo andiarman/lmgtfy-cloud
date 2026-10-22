@@ -1,0 +1,63 @@
+/* base.css — gaya dasar bersama untuk semua template prank (dark #202124) */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: #202124; color: #e8eaed;
+  font-family: 'Google Sans', 'Product Sans', Roboto, Arial, sans-serif;
+  overflow-x: hidden; overscroll-behavior-y: none;
+}
+button { font-family: inherit; }
+
+.p-shell { min-height: 100%; display: flex; flex-direction: column; align-items: center; padding: 26px 18px 40px; }
+.p-top { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 900px; gap: 14px; }
+.p-brand { display: flex; align-items: center; gap: 9px; font-size: 14px; color: #bdc1c6; letter-spacing: .2px; }
+.p-brand .p-dot { width: 9px; height: 9px; border-radius: 50%; background: #8ab4f8; box-shadow: 0 0 0 4px rgba(138,180,248,.16); }
+.p-model { font-size: 12px; color: #9aa0a6; background: #303134; border: 1px solid #3c4043; padding: 5px 11px; border-radius: 999px; }
+
+.p-main { width: 100%; max-width: 760px; margin-top: 34px; flex: 1; }
+.p-title { font-size: clamp(22px, 4vw, 30px); font-weight: 500; line-height: 1.28; margin: 0 0 6px; color: #e8eaed; }
+.p-sub { font-size: 14.5px; color: #9aa0a6; line-height: 1.55; margin: 0; }
+
+.p-cta {
+  display: inline-flex; align-items: center; gap: 9px; justify-content: center;
+  background: #8ab4f8; color: #202124; border: none; border-radius: 999px;
+  padding: 13px 26px; font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: filter .15s, transform .12s;
+}
+.p-cta:hover { filter: brightness(1.07); }
+.p-cta:active { transform: scale(.98); }
+.p-cta.ghost { background: transparent; color: #8ab4f8; border: 1px solid #5f6368; }
+.p-cta.ghost:hover { background: #303134; }
+
+/* ===== kartu toast kanan-bawah ===== */
+.p-toast {
+  position: fixed; right: 18px; bottom: 18px; z-index: 9999;
+  display: flex; gap: 11px; align-items: flex-start;
+  width: min(340px, calc(100vw - 32px));
+  background: #303134; border: 1px solid #3c4043; border-radius: 14px;
+  padding: 13px 13px 13px 14px;
+  box-shadow: 0 8px 26px rgba(0,0,0,.45);
+  opacity: 0; transform: translateY(14px) scale(.97);
+  transition: opacity .28s, transform .28s;
+}
+.p-toast.in { opacity: 1; transform: none; }
+.p-toast-ic { font-size: 17px; line-height: 1.35; flex: none; }
+.p-toast-body { font-size: 13.2px; line-height: 1.5; color: #e8eaed; flex: 1; min-width: 0; }
+.p-toast-body b { color: #8ab4f8; font-weight: 600; }
+.p-toast-body .muted { color: #9aa0a6; }
+.p-toast-x {
+  flex: none; background: transparent; border: none; color: #9aa0a6;
+  font-size: 19px; line-height: 1; cursor: pointer; padding: 2px 4px; border-radius: 50%;
+}
+.p-toast-x:hover { background: #3c4043; color: #e8eaed; }
+.p-toast .p-links { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.p-toast .p-links a, .p-toast .p-links button {
+  font-size: 12.5px; padding: 7px 13px; border-radius: 999px; cursor: pointer;
+  background: #8ab4f8; color: #202124; border: none; text-decoration: none; font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .p-shell { padding: 18px 14px 34px; }
+  .p-main { margin-top: 24px; }
+  .p-toast { right: 12px; left: 12px; bottom: 14px; width: auto; }
+}

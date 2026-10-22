@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Struk Pembayaran</title>
+<link rel="icon" href="../assets/favicon.ico">
+<link rel="stylesheet" href="base.css">
+<style>
+  .rc-wrap { width: 100%; max-width: 360px; margin: 24px auto 0; }
+  .rc {
+    background: #f7f7f4; color: #1c1c1c; border-radius: 4px;
+    padding: 24px 22px 28px; font-family: 'Courier New', ui-monospace, monospace;
+    font-size: 13px; line-height: 1.7; position: relative; overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0,0,0,.5);
+    -webkit-mask-image: linear-gradient(#000 94%, transparent), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0h12v2L6 6 0 2z' fill='%23000'/%3E%3C/svg%3E");
+    -webkit-mask-size: 100% calc(100% - 8px), 12px 8px;
+    -webkit-mask-position: top, bottom;
+    -webkit-mask-repeat: no-repeat, repeat-x;
+    mask-image: linear-gradient(#000 94%, transparent), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0h12v2L6 6 0 2z' fill='%23000'/%3E%3C/svg%3E");
+    mask-size: 100% calc(100% - 8px), 12px 8px;
+    mask-position: top, bottom;
+    mask-repeat: no-repeat, repeat-x;
+    opacity: 0; transform: translateY(14px); animation: rcIn .5s .1s both;
+  }
+  @keyframes rcIn { to { opacity: 1; transform: none; } }
+  .rc hr { border: none; border-top: 1px dashed #b4b1a8; margin: 11px 0; }
+  .rc .c { text-align: center; }
+  .rc .b { font-weight: 700; }
+  .rc .big { font-size: 15px; letter-spacing: .5px; }
+  .rc .mut { color: #6b6b66; }
+  .rc .row { display: flex; justify-content: space-between; gap: 10px; }
+  .rc .row .n { min-width: 0; overflow-wrap: anywhere; }
+  .rc .total { display: flex; justify-content: space-between; font-size: 17px; font-weight: 700; }
+  .rc .total .v { font-variant-numeric: tabular-nums; }
+  .rc .disc { display: none; }
+  .rc .disc.show { display: flex; color: #1a7f37; font-weight: 700; animation: fadeUp .3s both; }
+  .rc .status { display: flex; justify-content: space-between; font-weight: 700; letter-spacing: .5px; }
+  .rc .status .unpaid { color: #d1332e; }
+  .rc .status .paid { color: #1a7f37; }
+  .rc .q {
+    background: #eceae3; border: 1px dashed #a9a69c; padding: 8px 9px;
+    margin: 4px 0; font-size: 12.5px; overflow-wrap: anywhere; border-radius: 3px;
+  }
+  .rc .fine { font-size: 11.5px; color: #6b6b66; line-height: 1.55; }
+  .rc .barcode { display: flex; gap: 2px; justify-content: center; align-items: flex-end; height: 44px; margin-top: 6px; }
+  .rc .barcode i { display: block; width: 2px; background: #1c1c1c; height: 100%; }
+  .rc .barcode i:nth-child(3n) { width: 4px; }
+  .rc .barcode i:nth-child(4n) { width: 1px; }
+  .rc .barcode i:nth-child(5n) { height: 82%; }
+  .rc .qr {
+    width: 62px; height: 62px; margin: 8px auto 0; border: 3px solid #1c1c1c; border-radius: 6px;
+    display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr); gap: 2px; padding: 5px;
+  }
+  .rc .qr i { background: #1c1c1c; border-radius: 1px; }
+  .rc .qr i.off { background: transparent; }
+
+  /* kilau terbayar */
+  .rc::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(105deg, transparent 34%, rgba(129,201,149,.6) 50%, transparent 66%);
+    transform: translateX(-130%);
+  }
+  .rc.paid::after { animation: sweep .95s .05s ease-out both; }
+  @keyframes sweep { 0% { opacity: 1; transform: translateX(-130%); } 100% { opacity: 1; transform: translateX(130%); } }
+
+  .rc .stamp {
+    position: absolute; top: 36%; left: 50%; transform: translate(-50%,-50%) rotate(-14deg);
+    border: 3px solid #d1332e; color: #d1332e; font-weight: 700; font-size: 15px;
+    padding: 5px 12px; border-radius: 6px; letter-spacing: 1.5px; opacity: .82;
+    pointer-events: none; text-transform: uppercase; font-family: 'Google Sans', Arial, sans-serif;
+    animation: stampIn .35s .7s both; white-space: nowrap;
+  }
+  @keyframes stampIn { from { transform: translate(-50%,-50%) rotate(-14deg) scale(2.4); opacity: 0; }
+                       to { transform: translate(-50%,-50%) rotate(-14deg) scale(1); opacity: .82; } }
+  .rc .stamp.lunas { border-color: #1a7f37; color: #1a7f37; }
+  @keyframes stampPaid { from { transform: translate(-50%,-50%) rotate(-14deg) scale(2.6); opacity: 0; }
+                         to { transform: translate(-50%,-50%) rotate(-14deg) scale(1); opacity: .85; } }
+
+  /* voucher */
+  .rc-cpn { background: #eceae3; border: 1px dashed #a9a69c; border-radius: 4px; padding: 10px 11px; margin: 6px 0; }
+  .rc-cpn.shake { animation: shk .3s; }
+  @keyframes shk { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 50%{transform:translateX(6px)} 75%{transform:translateX(-3px)} }
+  .rc-cpn .h { font-size: 11.5px; letter-spacing: 1.4px; color: #6b6b66; font-weight: 700; }
+  .rc-cpn .code {
+    display: inline-block; margin-top: 6px; background: #1c1c1c; color: #f7f7f4;
+    font-size: 15px; font-weight: 700; letter-spacing: 5px; padding: 5px 10px 5px 15px; border-radius: 3px;
+    font-family: 'Courier New', ui-monospace, monospace;
+  }
+  .rc-cpn .note { font-size: 11.5px; color: #6b6b66; margin-top: 7px; line-height: 1.5; }
+  .rc-cpn .cr { display: flex; gap: 6px; margin-top: 8px; }
+  .rc-cpn input {
+    flex: 1; min-width: 0; font-family: 'Courier New', ui-monospace, monospace; font-size: 13px;
+    padding: 8px 9px; border: 1px solid #a9a69c; background: #fff; color: #1c1c1c;
+    border-radius: 3px; outline: none; letter-spacing: 1px;
+  }
+  .rc-cpn input:focus { border-color: #1c1c1c; }
+  .rc-cpn button {
+    font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    padding: 8px 12px; border: none; border-radius: 3px; background: #1c1c1c; color: #f7f7f4; cursor: pointer;
+  }
+  .rc-cpn button:disabled { background: #a9a69c; cursor: default; }
+  .rc-cpn .msg { font-size: 11.5px; margin-top: 6px; min-height: 15px; font-weight: 700; color: #d1332e; }
+  .rc-cpn .msg.ok { color: #1a7f37; }
+  .rc-cpn.ok { border-style: solid; border-color: #1a7f37; background: #eaf4ec; }
+  .rc-cpn.ok .code { background: #1a7f37; }
+
+  .rc-acts { display: flex; gap: 10px; margin-top: 20px; }
+  .rc-acts .p-cta { flex: 1; }
+  .rc-acts #btnGo { display: none; }
+  .rc-acts.paid #btnGo { display: inline-flex; animation: fadeUp .4s both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 380px) {
+    .rc { padding: 20px 16px 24px; font-size: 12px; }
+    .rc .total { font-size: 15px; }
+    .rc .stamp { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="p-shell">
+  <div class="p-top">
+    <div class="p-brand"><span class="p-dot"></span> Google Search Services</div>
+    <div class="p-model" id="badge">BELUM LUNAS</div>
+  </div>
+
+  <div class="rc-wrap">
+    <div class="rc" id="rc">
+      <div class="c big b">GOOGLE SEARCH SERVICES</div>
+      <div class="c mut">Jasa Pencarian &amp; Konsultasi Instan</div>
+      <div class="c mut">Cabang: Internet</div>
+      <hr>
+      <div class="row"><span class="mut">No.</span><span id="no"></span></div>
+      <div class="row"><span class="mut">Tanggal</span><span id="tanggal"></span></div>
+      <div class="row"><span class="mut">Kasir</span><span>MESIN PENCARI</span></div>
+      <hr>
+      <div class="mut b">PERTANYAAN PELANGGAN:</div>
+      <div class="q" id="q"></div>
+      <hr>
+      <div class="row"><span class="n">Jasa mengetik 1 pertanyaan</span><span>15.000</span></div>
+      <div class="row"><span class="n">Biaya buka browser</span><span>8.500</span></div>
+      <div class="row"><span class="n">Konsultasi "cari sendiri"</span><span>25.000</span></div>
+      <div class="row"><span class="n">Denda tanya tanpa cari dulu</span><span>50.000</span></div>
+      <hr>
+      <div class="row mut"><span>Subtotal</span><span>98.500</span></div>
+      <div class="row mut"><span>Pajak jasa digital (11%)</span><span>10.835</span></div>
+      <div class="row disc" id="discRow"><span>Kupon "tolong"</span><span id="discVal">-0</span></div>
+      <hr>
+      <div class="total"><span>TOTAL</span><span class="v" id="total">109.335</span></div>
+      <div class="status" style="margin-top:2px">
+        <span class="mut">Status pembayaran</span>
+        <span class="unpaid" id="status">BELUM LUNAS</span>
+      </div>
+      <hr>
+
+      <div class="rc-cpn" id="cpnBox">
+        <div class="h">PUNYA KODE KUPON?</div>
+        <div class="code">tolong</div>
+        <div class="note">Potongan 100%. Kodenya kelihatan kok — tinggal kamu yang ketik sendiri di bawah. Tempel dimatikan.</div>
+        <div class="cr">
+          <input id="cpnInp" type="text" autocomplete="off" autocapitalize="off" autocorrect="off"
+                 spellcheck="false" placeholder="ketik kupon…" aria-label="Kode kupon">
+          <button id="cpnGo" type="button">PAKAI</button>
+        </div>
+        <div class="msg" id="cpnMsg"></div>
+      </div>
+
+      <hr>
+      <div class="fine">Harga berlaku untuk yang bertanya<br>tanpa pernah googling dulu.</div>
+      <div class="fine" style="margin-top:6px">Tidak ada metode bayar lain selain kupon di atas.</div>
+      <div class="barcode" id="barcode"></div>
+      <div class="qr" id="qr"></div>
+      <div class="c mut" style="margin-top:8px">SCAN = BUKA GOOGLE (BIAYA LAGI)</div>
+      <hr>
+      <div class="c b">TERIMA KASIH</div>
+      <div class="c mut">Barang yang sudah dibeli<br>tidak dapat dikembalikan.</div>
+      <div class="c mut" style="margin-top:6px">Lain kali googling dulu ya.</div>
+      <div class="stamp" id="stamp">BELUM LUNAS</div>
+    </div>
+
+    <div class="rc-acts" id="acts">
+      <button class="p-cta" id="btnGo">Buka hasil pencarian →</button>
+      <button class="p-cta ghost" id="btnShare">Bagikan</button>
+    </div>
+  </div>
+</div>
+
+<script src="base.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var q = PRANK.query;
+  var TOTAL = 109335;
+  $('q').textContent = q;
+
+  var d = new Date();
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  $('tanggal').textContent = pad(d.getDate()) + '-' + pad(d.getMonth() + 1) + '-' + d.getFullYear() +
+    ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  $('no').textContent = 'INV-' + pad(d.getDate()) + pad(d.getMonth() + 1) + '-' + Math.floor(1000 + Math.random() * 9000);
+
+  var bc = $('barcode');
+  for (var i = 0; i < 52; i++) bc.appendChild(document.createElement('i'));
+  var pat = [1,1,1,0,1, 1,0,1,1,1, 1,1,0,1,0, 0,1,1,1,1, 1,1,1,0,1];
+  var qr = $('qr');
+  for (var j = 0; j < 25; j++) {
+    var s = document.createElement('i');
+    if (!pat[j]) s.className = 'off';
+    qr.appendChild(s);
+  }
+
+  function rp(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+  var cpnBox = $('cpnBox'), cpnInp = $('cpnInp'), cpnGo = $('cpnGo'), cpnMsg = $('cpnMsg');
+  var totalEl = $('total'), discRow = $('discRow'), discVal = $('discVal');
+  var stamp = $('stamp'), status = $('status'), badge = $('badge'), acts = $('acts'), rc = $('rc');
+  var paid = false;
+
+  var toastRef = null;
+  toastRef = toastFirst();
+  function toastFirst() {
+    return setTimeout(function () {
+      toastRef = showToast('<b>Tagihan Rp109.335 — belum lunas.</b><br>' +
+        '<span class="muted">Syarat lunas: kupon <b>tolong</b>. Ketik manual ya.</span>', { icon: '💵' });
+    }, 700);
+  }
+  function killToast() {
+    clearTimeout(toastRef);
+    var t = document.querySelector('.p-toast');
+    if (t) {
+      t.classList.remove('in');
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 320);
+    }
+  }
+
+  cpnGo.addEventListener('click', tryCoupon);
+  cpnInp.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); tryCoupon(); }
+  });
+  cpnInp.addEventListener('paste', function (e) {
+    e.preventDefault();
+    showToast('<b>Fitur tempel dimatikan.</b><br><span class="muted">Kuponya harus diketik sendiri.</span>', { icon: '🎟️' });
+  });
+  cpnInp.addEventListener('drop', function (e) { e.preventDefault(); });
+
+  function tryCoupon() {
+    if (paid) return;
+    var v = (cpnInp.value || '').trim().toLowerCase();
+    if (v !== 'tolong') {
+      cpnBox.classList.remove('shake'); void cpnBox.offsetWidth; cpnBox.classList.add('shake');
+      cpnMsg.className = 'msg';
+      cpnMsg.textContent = v ? 'Kupon tidak dikenal. Perhatikan lagi hurufnya.' : 'Masih kosong. Ketik kuponnya dulu.';
+      cpnInp.focus();
+      return;
+    }
+    runPaid();
+  }
+
+  function runPaid() {
+    paid = true;
+    cpnInp.disabled = true; cpnGo.disabled = true;
+    cpnMsg.className = 'msg ok';
+    cpnMsg.textContent = 'Kupon diterima. Diskon 100%.';
+
+    discVal.textContent = '-' + rp(TOTAL);
+    discRow.classList.add('show');
+
+    // total turun ke 0
+    var start = null, dur = 950;
+    function step(now) {
+      if (start === null) start = now;
+      var p = Math.min(1, (now - start) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
+      totalEl.textContent = rp(Math.round(TOTAL * (1 - e)));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+
+    setTimeout(markPaid, 800);          // stempel LUNAS + kilau
+    setTimeout(revealActions, 1150);    // baru muncul tombol
+  }
+
+  function markPaid() {
+    rc.classList.add('paid');
+    stamp.textContent = 'LUNAS';
+    stamp.classList.add('lunas');
+    stamp.style.animation = 'none'; void stamp.offsetWidth;
+    stamp.style.animation = 'stampPaid .45s both';
+    status.textContent = 'LUNAS';
+    status.className = 'paid';
+    badge.textContent = 'LUNAS';
+    badge.style.color = '#81c995';
+    badge.style.borderColor = 'rgba(129,201,149,.5)';
+  }
+
+  function revealActions() {
+    totalEl.textContent = 'Rp0';
+    killToast();
+    cpnBox.classList.add('ok');
+    cpnBox.querySelector('.h').textContent = 'KUPON TERPAKAI';
+    cpnBox.querySelector('.note').textContent = 'Kupon "tolong" — potongan 100%. Tagihan jadi Rp0. Tinggal buka hasilnya.';
+    var cr = cpnBox.querySelector('.cr'); if (cr) cr.style.display = 'none';
+    cpnMsg.textContent = '';
+    acts.classList.add('paid');
+    try { acts.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    showToast('<b>Lunas! Tagihan jadi Rp0.</b><br><span class="muted">Ketik sendiri ternyata gratis ya.</span>', { icon: '✅' });
+  }
+
+  $('btnGo').addEventListener('click', function () {
+    window.location.href = PRANK.destURL(PRANK.dest, q);
+  });
+  $('btnShare').addEventListener('click', function () {
+    var url = location.href;
+    if (navigator.share) { navigator.share({ title: 'Struk pencarian', url: url }).catch(function () {}); }
+    else if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      showToast('<b>Link disalin.</b><br><span class="muted">Kirim ke yang males googling.</span>', { icon: '📋' });
+    }
+  });
+})();
+</script>
+</body>
+</html>

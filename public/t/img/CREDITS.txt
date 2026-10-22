@@ -1,0 +1,16 @@
+Sumber gambar — Wikimedia Commons (dipakai template CAPTCHA)
+=============================================================
+Semua gambar diunduh dari Wikimedia Commons, dipotong tengah jadi kotak
+dan dikompres ulang. Lihat halaman filenya untuk lisensi & atribusi asli:
+https://commons.wikimedia.org/wiki/File:<nama>
+
+trafficlight.jpg  File:Tipperary Hill - green-over-red Syracuse, New York.jpg
+bicycle.jpg       File:Bicycles parked at bicycle rack in front of building.jpg
+crosswalk.jpg     File:Dean Street pedestrian crossing, Albury NSW.jpg
+car.jpg           File:DFC 1434 A sunlit busy street scene, a vendor sits on the pavement.jpg
+bus.jpg           File:2009 Wright Eclipse 2 Urban - 54157990483.jpg
+hydrant.jpg       File:Downtown Charlottesville fire hydrant 1.jpg
+bridge.jpg        File:Brooklyn Bridge August 2017.jpg
+store.jpg         File:Beckel House and Goldsmith's Shop, Main Street, Bethlehem.jpg
+stairs.jpg        File:Micheltorena stairs.jpg
+mountain.jpg      File:Blue Mountains National Park (AU), Three Sisters -- 2019 -- 0354.jpg
